@@ -1,2 +1,2 @@
-# AWS-HansOn
-AWS HansOn
+# AWS Essentials
+AWS Essentials
