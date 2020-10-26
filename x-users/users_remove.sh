@@ -4,6 +4,9 @@ export ENV_ALIAS_CUENTA_AWS=
 export ENV_CHANGE_PASSWD=
 
 
+# [En WIP] Work in Progress ... todavía no remueve
+
+
 aws iam remove-user-from-group --group-name Administrador --user-name NinjaAdmin
 aws iam remove-user-from-group --group-name PowerUser     --user-name NinjaPower
 aws iam remove-user-from-group --group-name Devs          --user-name Ninja1
@@ -57,9 +60,4 @@ aws iam delete-user --user-name Ninja2
 aws iam delete-user --user-name Ninja3
 aws iam delete-user --user-name Ninja4
 
-
-aws iam
-# Referencias:
-
-https://docs.aws.amazon.com/cli/latest/userguide/cli-services-iam.html
 
