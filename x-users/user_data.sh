@@ -5,4 +5,4 @@ yum install git -y
 service httpd start
 chkconfig httpd on
 cd /var/www/html
-echo “Hello!" > index.html
+echo "Hello!" > index.html
