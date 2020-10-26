@@ -1,0 +1,24 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+      {
+          "Sid": "FullAccessToSomeServices",
+          "Effect": "Allow",
+          "Action": [
+              "ec2:*",
+              "s3:*"
+          ],
+          "Resource": "*"
+      },
+      {
+          "Effect": "Allow",
+          "Action": [
+              "iam:CreateServiceLinkedRole",
+              "iam:DeleteServiceLinkedRole",
+              "iam:ListRoles",
+              "organizations:DescribeOrganization"
+          ],
+          "Resource": "*"
+      }
+  ]
+}
