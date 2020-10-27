@@ -1,7 +1,14 @@
 #!/bin/bash
 
-export ENV_ALIAS_CUENTA_AWS=
-export ENV_CHANGE_THIS_PASSWD=
+echo -n "AWS Account Number / Alias? "
+read AWS_Account
+
+
+echo -n "A Random and OTP Passord that users should change? "
+read AWS_Users_OTP_Passwd
+
+export ENV_ALIAS_CUENTA_AWS=${AWS_Account}
+export ENV_CHANGE_THIS_PASSWD=${AWS_Users_OTP_Passwd}
 
 
 
@@ -68,6 +75,11 @@ aws iam create-access-key    --user-name Ninja4
 aws iam create-access-key    --user-name Sensei
 
 
-# Referencias:
+## Referencias:
+
+# [LINKS]
 # https://docs.aws.amazon.com/cli/latest/userguide/cli-services-iam.html
+
+# [UTILES]
+#  aws sts get-caller-identity
 
