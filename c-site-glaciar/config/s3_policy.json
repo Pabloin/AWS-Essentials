@@ -1,0 +1,24 @@
+{
+    "Id": "PolicyMix",
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "MyPublicPolicy",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Resource": "arn:aws:s3:::website-ninja/*",
+            "Action": [
+                "s3:GetObject"
+            ]
+        },
+        {
+            "Sid": "MyPrivatePolicy",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Resource": "arn:aws:s3:::website-ninja/config/*",
+            "Action": [
+                "s3:GetObject"
+            ]
+        }
+    ]
+}

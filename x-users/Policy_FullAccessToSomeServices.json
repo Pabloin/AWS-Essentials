@@ -13,6 +13,7 @@
       {
           "Effect": "Allow",
           "Action": [
+              "iam:ChangePassword",
               "iam:CreateServiceLinkedRole",
               "iam:DeleteServiceLinkedRole",
               "iam:ListRoles",
