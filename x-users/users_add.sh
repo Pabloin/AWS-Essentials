@@ -83,6 +83,3 @@ aws iam create-access-key    --user-name Sensei
 # [UTILES]
 #  aws sts get-caller-identity
 
-# TODO:
-
-# O el usuario no está autorizado a realizar iam:ChangePassword 
