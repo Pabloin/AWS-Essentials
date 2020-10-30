@@ -14,3 +14,11 @@ AWS Essentials
     https://www.youtube.com/watch?v=XX9ktfLF1CI
 
 
+# 3. Getting Started ~ Demos ~ Billing Alert
+
+
+    https://www.youtube.com/watch?v=XX9ktfLF1CI
+
+
+
+
