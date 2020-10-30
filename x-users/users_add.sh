@@ -77,9 +77,16 @@ aws iam create-access-key    --user-name Sensei
 
 ## Referencias:
 
-# [LINKS]
-# https://docs.aws.amazon.com/cli/latest/userguide/cli-services-iam.html
 
 # [UTILES]
-#  aws sts get-caller-identity
+#    - https://docs.aws.amazon.com/cli/latest/userguide/cli-services-iam.html
+#    - Verificar Identidad
+#    - aws sts get-caller-identity
+
+# [UTILES]
+#   - https://docs.aws.amazon.com/es_es/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
+#   - Data Retrival
+#     curl http://169.254.169.254/latest/meta-data/
+#     curl http://169.254.169.254/latest/user-data/
+
 
