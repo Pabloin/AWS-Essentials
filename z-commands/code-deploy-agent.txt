@@ -13,7 +13,7 @@ sudo service codedeploy-agent status
 
 aws deploy create-application --application-name d-site-glaciar
 aws deploy push               --application-name d-site-glaciar \
-          s3//<glaciar-bucket>/c-site-glaciar-lab-02.zip \
+          s3://<glaciar-bucket>/c-site-glaciar-lab-02.zip \
         --ignore-hidden-files
 
 
