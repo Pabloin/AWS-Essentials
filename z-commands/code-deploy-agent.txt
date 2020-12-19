@@ -1,0 +1,20 @@
+# CodeDeploy Agent
+
+sudo yum update
+sudo yum install -y wget ruby 
+
+cd /home/ec2-user
+wget https://aws-codedeploy-eu-central-1.s3.amazonaws.com/latest/install
+chmod +x ./install
+
+sudo service codedeploy-agent status
+
+# My App Zip
+
+aws deploy create-application --application-name d-site-glaciar
+aws deploy push               --application-name d-site-glaciar \
+          s3//<glaciar-bucket>/d-site-glaciar.zip \
+        --ignore-hidden-files
+
+
+
