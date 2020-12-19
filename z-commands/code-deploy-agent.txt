@@ -1,6 +1,6 @@
 # CodeDeploy Agent
 
-sudo yum update
+sudo yum update -y 
 sudo yum install -y wget ruby 
 
 cd /home/ec2-user
@@ -13,7 +13,7 @@ sudo service codedeploy-agent status
 
 aws deploy create-application --application-name d-site-glaciar
 aws deploy push               --application-name d-site-glaciar \
-          s3//<glaciar-bucket>/d-site-glaciar.zip \
+          s3//<glaciar-bucket>/c-site-glaciar-lab-02.zip \
         --ignore-hidden-files
 
 
