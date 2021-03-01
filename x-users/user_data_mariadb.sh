@@ -12,4 +12,8 @@ sudo systemctl start mariadb
 # To make the installation secure
 # mysql_secure_installation
 
-# TODO: Validar ... 
+# MariaDB Ok!s
+
+# Nota ... si decimos en AMAZON EC2: 
+#      $ sudo yum install -y mysql 
+# nos instala mariadb.x86
