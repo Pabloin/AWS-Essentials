@@ -61,3 +61,45 @@ aws ec2 describe-instances --instance-ids $INSTANCE --query 'Reservations[].Inst
 aws ec2 describe-instances --instance-ids $INSTANCE --query Reservations[].Instances[].PublicDnsName --output text
 
 
+######################
+(based on:
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
+)
+# II. Attaching EBS to Linux
+
+$ lsblk
+
+New volumes are raw block devices, and you must create a file system on them before you can mount and use them.
+
+$ sudo file -s /dev/xvdf
+
+to format empty "data" files system
+
+$ lsblk
+$ sudo mkdir /my-data
+$ sudo  mount /dev/xvdf /my-data
+$ lsblk
+
+
+[ec2-user@ip-172-31-2-187 ~]$ lsblk
+NAME    MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+xvda    202:0    0   8G  0 disk 
+└─xvda1 202:1    0   8G  0 part /
+xvdf    202:80   0   8G  0 disk /my-data
+
+
+
+$ blkid
+
+[ec2-user@ip-172-31-2-187 ~]$ sudo blkid 
+/dev/xvda1: LABEL="/" UUID="15c7809d-e6e3-4062-a5eb-afeb1939fc6e" TYPE="xfs" PARTLABEL="Linux" PARTUUID="cfb2e895-ecec-41c
+5-afc2-40ffe2e4384a"
+/dev/xvdf: UUID="80029fd7-fa14-4515-a698-29711f1d8e38" TYPE="xfs"
+
+
+[ec2-user@ip-172-31-2-187 ~]$ 
+
+UUID=80029fd7-fa14-4515-a698-29711f1d8e38  /my-data  xfs  defaults,nofail  0  2
+
+
+cat /etc/fstab
