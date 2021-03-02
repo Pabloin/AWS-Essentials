@@ -3,8 +3,8 @@ yum update -y
 
 yum install -y mariadb-server
 
-sudo systemctl enable mariadb
-sudo systemctl start mariadb 
+systemctl enable mariadb
+systemctl start mariadb 
 
 # To validate
 # mysql -u root -p
