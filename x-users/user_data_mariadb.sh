@@ -17,3 +17,15 @@ systemctl start mariadb
 # Nota ... si decimos en AMAZON EC2: 
 #      $ sudo yum install -y mysql 
 # nos instala mariadb.x86
+
+
+# Para crear un usuario de demo, con acceso remoto:
+
+
+# mysql> GRANT ALL PRIVILEGES ON * . * TO 'pabloin'@'%' WITH GRANT OPTION;
+# mysql> FLUSH PRIVILEGES;
+# y 
+# vim  /etc/my.cnf
+# 
+# [mysqld]
+# bind-address  = 0.0.0.0
