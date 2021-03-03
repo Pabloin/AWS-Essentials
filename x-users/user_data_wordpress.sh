@@ -17,9 +17,6 @@ service httpd start
 chkconfig httpd on
 
 
----
-
-
 
 # Reference LAB
 # https://aws.amazon.com/es/getting-started/hands-on/deploy-wordpress-with-amazon-rds/5/

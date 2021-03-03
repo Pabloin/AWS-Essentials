@@ -7,9 +7,9 @@ systemctl enable mariadb
 systemctl start mariadb 
 
 
-MY_DATABASE='myDb'
-MY_DATABASE_USER='myUser'
-MY_DATABASE_PASS='myPass'
+MY_DATABASE='wordpress'
+MY_DATABASE_USER=
+MY_DATABASE_PASS=
 #MY_HOST=localhost
 MY_HOST='%'
 
@@ -20,9 +20,19 @@ GRANT ALL privileges ON \`${MY_DATABASE}\`.* TO '${MY_DATABASE_USER}'@'${MY_HOST
 FLUSH PRIVILEGES; \
 "
 
-
+# Esto es interactivo ... 
 
 echo "${commands}" | /usr/bin/mysql -u root -p
+
+
+# Obtener Pass de AWS SSM 
+#   - Necesita Credenciales desde IAM
+
+# yum install -y jq
+
+# export PARAM_MY_DATABASE_PASS=$(aws ssm get-parameter --name "PARAM_MY_DATABASE_PASS" | jq -r .Parameter.Value)
+
+
 
 # To validate
 # mysql -u root -p
@@ -37,10 +47,10 @@ echo "${commands}" | /usr/bin/mysql -u root -p
 # nos instala mariadb.x86
 
 
-# Para crear un usuario de demo, con acceso remoto:
+# Para crear un usuario de demo "user", con acceso remoto:
 
 
-# mysql> GRANT ALL PRIVILEGES ON * . * TO 'pabloin'@'%' WITH GRANT OPTION; \
+# mysql> GRANT ALL PRIVILEGES ON * . * TO 'user'@'%' WITH GRANT OPTION; \
 
 # mysql> FLUSH PRIVILEGES; \
 
