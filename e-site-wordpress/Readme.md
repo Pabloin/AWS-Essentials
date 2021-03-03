@@ -8,3 +8,5 @@ a) En una instancia EC2
 
 Está en WIP ...
 
+Se puede bajar de:
+wget https://wordpress.org/wordpress-5.1.1.tar.gz
