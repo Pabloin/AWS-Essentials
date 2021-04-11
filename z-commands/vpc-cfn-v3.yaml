@@ -9,10 +9,8 @@ Description:  This template deploys a VPC, with
   Web Security Group And Backend Security Group For RDS
   Thats Was Version 2
   And Version 3
-  **WARNING** This v3 template creates EC2 Instances and it will be billed
+  **WARNING** This v3 template creates TWO EC2 Instances and it will be billed
   EC2 Instance
-       This has Fixed an # Amazon Linux AMI in N.California
-       It Works only in N.California
 
 Parameters:
 
@@ -54,6 +52,11 @@ Parameters:
     Description: Please enter your IP range (CIDR notation) for access to the bastion host by SSH
     Type: String
     Default: 0.0.0.0/0
+
+  LatestAmiId:
+    Description: Gets the latest AMI from Systems Manager Parameter store
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
 
 Resources:
   VPC:
@@ -101,7 +104,7 @@ Resources:
         - Key: Name
           Value: !Sub ${MyLabName} Subnet Public B
 
-  PrivateSubnet1:
+  SubnetPrivate1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
@@ -112,7 +115,7 @@ Resources:
         - Key: Name
           Value: !Sub ${MyLabName} Private Subnet A
 
-  PrivateSubnet2:
+  SubnetPrivate2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
@@ -179,17 +182,17 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NatGateway
 
-  PrivateSubnet1RouteTableAssociation:
+  SubnetPrivate1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet1
+      SubnetId: !Ref SubnetPrivate1
 
-  PrivateSubnet2RouteTableAssociation:
+  SubnetPrivate2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet2
+      SubnetId: !Ref SubnetPrivate2
 
   SecurityGroupNoIngress:
     Type: AWS::EC2::SecurityGroup
@@ -230,34 +233,22 @@ Resources:
           ToPort: 22
           SourceSecurityGroupId: !Ref SecurityGroupWebDMZ
 
+  # ImageId: ami-0ff8a91507f77f867 # Amazon Linux AMI in N.Virginia (?)
   Ec2Instance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      ImageId: ami-063dd30adbb186909 # Amazon Linux AMI in N.California
-      UserData:
-        'Fn::Base64': 
-          !Sub |
-            #!/bin/bash
-            yum -y update
-
-            # install apache
-            yum install httpd24 -y  
-
-            # start server
-            service httpd start
-            chkconfig httpd on
-      SecurityGroups:
-        - !Ref SecurityGroupWebDMZ
+      ImageId: !Ref LatestAmiId
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - Ref: SecurityGroupWebDMZ
+          SubnetId:
+            Ref: SubnetPublic1
       Tags:
         - Key: Name
-          Value: My Apache WebSite
-
-  Ec2Instance:
-    Type: AWS::EC2::Instance
-    Properties:
-      InstanceType: t2.micro
-      ImageId: ami-063dd30adbb186909 # Amazon Linux AMI in N.California
+          Value: My Glaciar WebSite
       UserData:
         'Fn::Base64': 
           !Sub |
@@ -266,32 +257,52 @@ Resources:
             yum install git -y
             service httpd start
             chkconfig httpd on
-
             cd /var/www/html
             echo "Hello!" > index.html
-
             git clone https://github.com/Pabloin/AWS-Essentials.git
             unzip AWS-Essentials/c-site-glaciar/lab-02/site-glaciar-lab-02.zip
             cp -r lab-02/site/* /var/www/html/
 
-      SecurityGroups:
-        - !Ref SecurityGroupWebDMZ
+
+  # FROM Lab https://wellarchitectedlabs.com/reliability/200_labs/200_deploy_and_update_cloudformation/5_add_ec2/
+      # InstanceType: !Ref InstanceType
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: t2.micro
       Tags:
         - Key: Name
-          Value: My Glaciar WebSite
+          Value: Simple Server
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - Ref: SecurityGroupWebDMZ
+          SubnetId:
+            Ref: SubnetPublic1
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            yum -y update
+            sudo yum install -y httpd
+            sudo systemctl start httpd
+            sudo echo '<h1>Hello from ${AWS::Region}</h1>' > /var/www/html/index.html
+
 
 Outputs:
   VPC:
     Description: VPC Created
     Value: !Ref VPC
 
-  SubnetPublics:
+  SubnetsPublic:
     Description: A list of the public subnets
     Value: !Join [ ",", [ !Ref SubnetPublic1, !Ref SubnetPublic2 ]]
 
-  PrivateSubnets:
+  SubnetsPrivate:
     Description: A list of the private subnets
-    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
+    Value: !Join [ ",", [ !Ref SubnetPrivate1, !Ref SubnetPrivate2 ]]
 
   SubnetPublic1:
     Description: Public subnet in the Availability Zone A
@@ -301,13 +312,13 @@ Outputs:
     Description: Public subnet in the Availability Zone B
     Value: !Ref SubnetPublic2
 
-  PrivateSubnet1:
+  SubnetPrivate1:
     Description: Private subnet in the Availability Zone A
-    Value: !Ref PrivateSubnet1
+    Value: !Ref SubnetPrivate1
 
-  PrivateSubnet2:
+  SubnetPrivate2:
     Description: Private subnet in the Availability Zone B
-    Value: !Ref PrivateSubnet2
+    Value: !Ref SubnetPrivate2
 
   SecurityGroupNoIngress:
     Description: Security group with no ingress rule

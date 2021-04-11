@@ -81,7 +81,7 @@ Resources:
         - Key: Name
           Value: !Sub ${MyLabName} Subnet Public B
 
-  PrivateSubnet1:
+  SubnetPrivate1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
@@ -92,7 +92,7 @@ Resources:
         - Key: Name
           Value: !Sub ${MyLabName} Private Subnet A
 
-  PrivateSubnet2:
+  SubnetPrivate2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
@@ -159,17 +159,17 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NatGateway
 
-  PrivateSubnet1RouteTableAssociation:
+  SubnetPrivate1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet1
+      SubnetId: !Ref SubnetPrivate1
 
-  PrivateSubnet2RouteTableAssociation:
+  SubnetPrivate2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet2
+      SubnetId: !Ref SubnetPrivate2
 
   SecurityGroupNoIngress:
     Type: AWS::EC2::SecurityGroup
@@ -187,9 +187,9 @@ Outputs:
     Description: A list of the public subnets
     Value: !Join [ ",", [ !Ref SubnetPublic1, !Ref SubnetPublic2 ]]
 
-  PrivateSubnets:
+  SubnetsPrivate:
     Description: A list of the private subnets
-    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
+    Value: !Join [ ",", [ !Ref SubnetPrivate1, !Ref SubnetPrivate2 ]]
 
   SubnetPublic1:
     Description: Public subnet in the Availability Zone A
@@ -199,13 +199,13 @@ Outputs:
     Description: Public subnet in the Availability Zone B
     Value: !Ref SubnetPublic2
 
-  PrivateSubnet1:
+  SubnetPrivate1:
     Description: Private subnet in the Availability Zone A
-    Value: !Ref PrivateSubnet1
+    Value: !Ref SubnetPrivate1
 
-  PrivateSubnet2:
+  SubnetPrivate2:
     Description: Private subnet in the Availability Zone B
-    Value: !Ref PrivateSubnet2
+    Value: !Ref SubnetPrivate2
 
   SecurityGroupNoIngress:
     Description: Security group with no ingress rule
