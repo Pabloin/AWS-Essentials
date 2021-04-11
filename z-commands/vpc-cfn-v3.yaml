@@ -126,17 +126,17 @@ Resources:
         - Key: Name
           Value: !Sub ${MyLabName} Private Subnet B
 
-  NatGatewayEIP:
-    Type: AWS::EC2::EIP
-    DependsOn: InternetGatewayAttachment
-    Properties:
-      Domain: vpc
+  # NatGatewayEIP:
+  #   Type: AWS::EC2::EIP
+  #   DependsOn: InternetGatewayAttachment
+  #   Properties:
+  #     Domain: vpc
 
-  NatGateway:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGatewayEIP.AllocationId
-      SubnetId: !Ref SubnetPublic1
+  # NatGateway:
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #     AllocationId: !GetAtt NatGatewayEIP.AllocationId
+  #     SubnetId: !Ref SubnetPublic1
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -175,12 +175,12 @@ Resources:
         - Key: Name
           Value: !Sub ${MyLabName} Private RT
 
-  DefaultPrivateRoute1:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
+  # DefaultPrivateRoute1:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRouteTable
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId: !Ref NatGateway
 
   SubnetPrivate1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -239,6 +239,7 @@ Resources:
     Properties:
       InstanceType: t2.micro
       ImageId: !Ref LatestAmiId
+      KeyName: !Ref KeyName
       NetworkInterfaces:
         - AssociatePublicIpAddress: "true"
           DeviceIndex: "0"
@@ -252,6 +253,7 @@ Resources:
       UserData:
         'Fn::Base64': 
           !Sub |
+            #!/bin/bash
             yum update -y
             yum install httpd -y
             yum install git -y
@@ -269,8 +271,9 @@ Resources:
   MyEC2Instance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: !Ref LatestAmiId
       InstanceType: t2.micro
+      ImageId: !Ref LatestAmiId
+      KeyName: !Ref KeyName
       Tags:
         - Key: Name
           Value: Simple Server
