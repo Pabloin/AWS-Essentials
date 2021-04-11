@@ -10,7 +10,9 @@ Description:  This template deploys a VPC, with
   Thats Was Version 2
   And Version 3
   **WARNING** This v3 template creates TWO EC2 Instances and it will be billed
-  EC2 Instance
+  EC2 Instance with User Data (Glaciar) and ssh KeyName
+  I am Disabling With Comments the Nat Gateways to Speed Up the template and dismiss risks of unwanted costs
+  Thats Was the Version 3
 
 Parameters:
 
@@ -233,8 +235,7 @@ Resources:
           ToPort: 22
           SourceSecurityGroupId: !Ref SecurityGroupWebDMZ
 
-  # ImageId: ami-0ff8a91507f77f867 # Amazon Linux AMI in N.Virginia (?)
-  Ec2Instance:
+  MyGlaciarWebInstance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
@@ -267,8 +268,7 @@ Resources:
 
 
   # FROM Lab https://wellarchitectedlabs.com/reliability/200_labs/200_deploy_and_update_cloudformation/5_add_ec2/
-      # InstanceType: !Ref InstanceType
-  MyEC2Instance:
+  EC2BastionInstance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
@@ -326,3 +326,10 @@ Outputs:
   SecurityGroupNoIngress:
     Description: Security group with no ingress rule
     Value: !Ref SecurityGroupNoIngress
+
+  EC2WebSites:
+    Description: Glaciar Available on
+    Value: !GetAtt MyGlaciarWebInstance.PublicIp
+    Export:
+      Name: !Sub "${AWS::StackName}-Glaciar-PublicIp"
+    
