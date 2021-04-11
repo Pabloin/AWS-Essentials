@@ -1,212 +1,94 @@
-Description:  This template deploys a VPC, with 
-  A pair of public and private subnets spread across two Availability Zones.
-  It deploys an internet gateway, with a default route on the public subnets. 
-  It deploys a NAT gateways and default routes for them in the private subnets.
-  With Default NACL and One no-ingress Security Group.
-  **WARNING** This v1 template creates a NatGateway and it is billed at 1.30 USD by day
+AWSTemplateFormatVersion: '2010-09-09'
+Metadata: 
+  License: Apache-2.0
+Description: 'AWS CloudFormation Sample Template S3_Website_With_CloudFront_Distribution:
+  Sample template showing how to create a website with a custom DNS name, hosted on
+  Amazon S3 and served via Amazone CloudFront. It assumes you already have a Hosted
+  Zone registered with Amazon Route 53. **WARNING** This template creates an Amazon
+  Route 53 DNS record, an S3 bucket and a CloudFront distribution. You will be billed
+  for the AWS resources used if you create a stack from this template.'
+  https://github.com/awslabs/aws-cloudformation-templates/blob/master/aws/services/S3/S3_Website_With_CloudFront_Distribution.yaml
 
 Parameters:
-  MyLabName:
-    Description: Lab Name
+  HostedZone:
     Type: String
-
-  MyVPC:
-    Description: Please enter the IP range (CIDR notation) for this VPC
-    Type: String
-    Default: 10.0.0.0/16
-
-  SubnetPublic1CIDR:
-    Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
-    Type: String
-    Default: 10.0.0.0/24
-
-  SubnetPublic2CIDR:
-    Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
-    Type: String
-    Default: 10.0.1.0/24
-
-  SubnetPrivate1CIDR:
-    Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone
-    Type: String
-    Default: 10.0.2.0/24
-
-  SubnetPrivate2CIDR:
-    Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
-    Type: String
-    Default: 10.0.3.0/24
-
+    Description: The DNS name of an existing Amazon Route 53 hosted zone
+    AllowedPattern: (?!-)[a-zA-Z0-9-.]{1,63}(?<!-)
+    ConstraintDescription: must be a valid DNS zone name.
+Mappings:
+  Region2S3WebsiteSuffix:
+    us-east-1:
+      Suffix: .s3-website-us-east-1.amazonaws.com
+    us-west-1:
+      Suffix: .s3-website-us-west-1.amazonaws.com
+    us-west-2:
+      Suffix: .s3-website-us-west-2.amazonaws.com
+    eu-west-1:
+      Suffix: .s3-website-eu-west-1.amazonaws.com
+    ap-northeast-1:
+      Suffix: .s3-website-ap-northeast-1.amazonaws.com
+    ap-northeast-2:
+      Suffix: .s3-website-ap-northeast-2.amazonaws.com
+    ap-southeast-1:
+      Suffix: .s3-website-ap-southeast-1.amazonaws.com
+    ap-southeast-2:
+      Suffix: .s3-website-ap-southeast-2.amazonaws.com
+    ap-south-1:
+      Suffix: .s3-website-ap-south-1.amazonaws.com
+    us-east-2:
+      Suffix: .s3-website-us-east-2.amazonaws.com
+    sa-east-1:
+      Suffix: .s3-website-sa-east-1.amazonaws.com
+    cn-north-1:
+      Suffix: .s3-website.cn-north-1.amazonaws.com.cn
+    eu-central-1:
+      Suffix: .s3-website.eu-central-1.amazonaws.com
 Resources:
-  VPC:
-    Type: AWS::EC2::VPC
+  S3BucketForWebsiteContent:
+    Type: AWS::S3::Bucket
     Properties:
-      CidrBlock: !Ref MyVPC
-      EnableDnsHostnames: true
-      EnableDnsSupport: true
-      Tags:
-        - Key: Name
-          Value: !Ref MyLabName
-
-  InternetGateway:
-    Type: AWS::EC2::InternetGateway
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+  WebsiteCDN:
+    Type: AWS::CloudFront::Distribution
     Properties:
-      Tags:
-        - Key: Name
-          Value: !Ref MyLabName
-
-  InternetGatewayAttachment:
-    Type: AWS::EC2::VPCGatewayAttachment
+      DistributionConfig:
+        Comment: CDN for S3-backed website
+        Aliases:
+        - !Join ['', [!Ref 'AWS::StackName', !Ref 'AWS::AccountId', ., !Ref 'AWS::Region',
+            ., !Ref 'HostedZone']]
+        Enabled: 'true'
+        DefaultCacheBehavior:
+          ForwardedValues:
+            QueryString: 'true'
+          TargetOriginId: only-origin
+          ViewerProtocolPolicy: allow-all
+        DefaultRootObject: index.html
+        Origins:
+        - CustomOriginConfig:
+            HTTPPort: '80'
+            HTTPSPort: '443'
+            OriginProtocolPolicy: http-only
+          DomainName: !Join ['', [!Ref 'S3BucketForWebsiteContent', !FindInMap [Region2S3WebsiteSuffix,
+                !Ref 'AWS::Region', Suffix]]]
+          Id: only-origin
+  WebsiteDNSName:
+    Type: AWS::Route53::RecordSet
     Properties:
-      InternetGatewayId: !Ref InternetGateway
-      VpcId: !Ref VPC
-
-  SubnetPublic1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAZs '' ]
-      CidrBlock: !Ref SubnetPublic1CIDR
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${MyLabName} Subnet Public A
-
-  SubnetPublic2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
-      CidrBlock: !Ref SubnetPublic2CIDR
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${MyLabName} Subnet Public B
-
-  SubnetPrivate1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
-      CidrBlock: !Ref SubnetPrivate1CIDR
-      MapPublicIpOnLaunch: false
-      Tags:
-        - Key: Name
-          Value: !Sub ${MyLabName} Private Subnet A
-
-  SubnetPrivate2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
-      CidrBlock: !Ref SubnetPrivate2CIDR
-      MapPublicIpOnLaunch: false
-      Tags:
-        - Key: Name
-          Value: !Sub ${MyLabName} Private Subnet B
-
-  NatGatewayEIP:
-    Type: AWS::EC2::EIP
-    DependsOn: InternetGatewayAttachment
-    Properties:
-      Domain: vpc
-
-  NatGateway:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGatewayEIP.AllocationId
-      SubnetId: !Ref SubnetPublic1
-
-  PublicRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: !Sub ${MyLabName} Public Routes
-
-  DefaultPublicRoute:
-    Type: AWS::EC2::Route
-    DependsOn: InternetGatewayAttachment
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
-
-  SubnetPublic1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      SubnetId: !Ref SubnetPublic1
-
-  SubnetPublic2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      SubnetId: !Ref SubnetPublic2
-
-
-  PrivateRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: !Sub ${MyLabName} Private Routes A
-
-  DefaultPrivateRoute1:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
-
-  SubnetPrivate1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref SubnetPrivate1
-
-  SubnetPrivate2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref SubnetPrivate2
-
-  SecurityGroupNoIngress:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: "no-ingress-sg"
-      GroupDescription: "Security group with no ingress rule"
-      VpcId: !Ref VPC
-
+      HostedZoneName: !Join ['', [!Ref 'HostedZone', .]]
+      Comment: CNAME redirect custom name to CloudFront distribution
+      Name: !Join ['', [!Ref 'AWS::StackName', !Ref 'AWS::AccountId', ., !Ref 'AWS::Region',
+          ., !Ref 'HostedZone']]
+      Type: CNAME
+      TTL: '900'
+      ResourceRecords:
+      - !GetAtt [WebsiteCDN, DomainName]
 Outputs:
-  VPC:
-    Description: VPC Created
-    Value: !Ref VPC
-
-  SubnetPublics:
-    Description: A list of the public subnets
-    Value: !Join [ ",", [ !Ref SubnetPublic1, !Ref SubnetPublic2 ]]
-
-  SubnetsPrivate:
-    Description: A list of the private subnets
-    Value: !Join [ ",", [ !Ref SubnetPrivate1, !Ref SubnetPrivate2 ]]
-
-  SubnetPublic1:
-    Description: Public subnet in the Availability Zone A
-    Value: !Ref SubnetPublic1
-
-  SubnetPublic2:
-    Description: Public subnet in the Availability Zone B
-    Value: !Ref SubnetPublic2
-
-  SubnetPrivate1:
-    Description: Private subnet in the Availability Zone A
-    Value: !Ref SubnetPrivate1
-
-  SubnetPrivate2:
-    Description: Private subnet in the Availability Zone B
-    Value: !Ref SubnetPrivate2
-
-  SecurityGroupNoIngress:
-    Description: Security group with no ingress rule
-    Value: !Ref SecurityGroupNoIngress
+  WebsiteURL:
+    Value: !Join ['', ['http://', !Ref 'WebsiteDNSName']]
+    Description: The URL of the newly created website
+  BucketName:
+    Value: !Ref 'S3BucketForWebsiteContent'
+    Description: Name of S3 bucket to hold website content
