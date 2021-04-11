@@ -2,6 +2,10 @@ Description:  This template deploys a VPC, with
   A pair of public and private subnets spread across two Availability Zones.
   It deploys an internet gateway, with a default route on the public subnets. 
   It deploys a NAT gateways and default routes for them in the private subnets.
+  With Default NACL and One no-ingress Security Group.
+  Thats Was Version 1 
+  And Version 2
+  Web Security Group And Backend Security Group For RDS
 
 Parameters:
   MyLabName:
@@ -32,6 +36,11 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
     Type: String
     Default: 10.0.3.0/24
+
+  BastionSshIpSCIDR:
+    Description: Please enter your IP range (CIDR notation) for access to the bastion host by SSH
+    Type: String
+    Default: 0.0.0.0/0
 
 Resources:
   VPC:
@@ -119,7 +128,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${MyLabName} Public Routes
+          Value: !Sub ${MyLabName} Public RT
 
   DefaultPublicRoute:
     Type: AWS::EC2::Route
@@ -148,7 +157,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${MyLabName} Private Routes A
+          Value: !Sub ${MyLabName} Private RT
 
   DefaultPrivateRoute1:
     Type: AWS::EC2::Route
@@ -175,6 +184,38 @@ Resources:
       GroupName: "no-ingress-sg"
       GroupDescription: "Security group with no ingress rule"
       VpcId: !Ref VPC
+
+  SecurityGroupWebDMZ:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "Web-DMZ-SG"
+      GroupDescription: "Web DMZ Security Group"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref BastionSshIpSCIDR
+
+  SecurityGroupDB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "DB-SG"
+      GroupDescription: "Database Security Group"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3305
+          SourceSecurityGroupId: !Ref SecurityGroupWebDMZ
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SecurityGroupWebDMZ
 
 Outputs:
   VPC:
