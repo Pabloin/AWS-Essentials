@@ -7,8 +7,20 @@ Description:  This template deploys a VPC, with
   Thats Was Version 1 
   And Version 2
   Web Security Group And Backend Security Group For RDS
+  Thats Was Version 2
+  And Version 3
+  **WARNING** This v3 template creates EC2 Instances and it will be billed
+  EC2 Instance
+       This has Fixed an # Amazon Linux AMI in N.California
+       It Works only in N.California
 
 Parameters:
+
+  KeyName:
+    Description: We Need an existing EC2 KeyPair to do SSH access to the instances
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: Must be an existing EC2 KeyPair.
+    
   MyLabName:
     Description: Lab Name
     Type: String
@@ -217,6 +229,56 @@ Resources:
           FromPort: 22
           ToPort: 22
           SourceSecurityGroupId: !Ref SecurityGroupWebDMZ
+
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-063dd30adbb186909 # Amazon Linux AMI in N.California
+      UserData:
+        'Fn::Base64': 
+          !Sub |
+            #!/bin/bash
+            yum -y update
+
+            # install apache
+            yum install httpd24 -y  
+
+            # start server
+            service httpd start
+            chkconfig httpd on
+      SecurityGroups:
+        - !Ref SecurityGroupWebDMZ
+      Tags:
+        - Key: Name
+          Value: My Apache WebSite
+
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-063dd30adbb186909 # Amazon Linux AMI in N.California
+      UserData:
+        'Fn::Base64': 
+          !Sub |
+            yum update -y
+            yum install httpd -y
+            yum install git -y
+            service httpd start
+            chkconfig httpd on
+
+            cd /var/www/html
+            echo "Hello!" > index.html
+
+            git clone https://github.com/Pabloin/AWS-Essentials.git
+            unzip AWS-Essentials/c-site-glaciar/lab-02/site-glaciar-lab-02.zip
+            cp -r lab-02/site/* /var/www/html/
+
+      SecurityGroups:
+        - !Ref SecurityGroupWebDMZ
+      Tags:
+        - Key: Name
+          Value: My Glaciar WebSite
 
 Outputs:
   VPC:

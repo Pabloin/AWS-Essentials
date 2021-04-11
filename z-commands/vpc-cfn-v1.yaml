@@ -2,6 +2,8 @@ Description:  This template deploys a VPC, with
   A pair of public and private subnets spread across two Availability Zones.
   It deploys an internet gateway, with a default route on the public subnets. 
   It deploys a NAT gateways and default routes for them in the private subnets.
+  With Default NACL and One no-ingress Security Group.
+  **WARNING** This v1 template creates a NatGateway and it is billed at 1.30 USD by day
 
 Parameters:
   MyLabName:
