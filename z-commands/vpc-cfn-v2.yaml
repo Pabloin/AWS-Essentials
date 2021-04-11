@@ -210,12 +210,12 @@ Resources:
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 3306
-          ToPort: 3305
+          ToPort: 3306
           SourceSecurityGroupId: !Ref SecurityGroupWebDMZ
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: !Ref SecurityGroupWebDMZ
+          SourceSecurityGroupId: !Ref SecurityGroupWebDMZ
 
 Outputs:
   VPC:
