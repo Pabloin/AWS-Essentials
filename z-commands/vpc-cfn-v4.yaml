@@ -345,6 +345,7 @@ Resources:
             systemctl enable mariadb
             systemctl start  mariadb 
 
+            # TODO FIX: No funciona el '%'
             echo "CREATE DATABASE '${WordpressDbName}'; \
             CREATE USER '${WordpressDbUser}'@'%' IDENTIFIED BY '${WordpressDbPass}'; \
             GRANT USAGE ON *.* TO '${WordpressDbUser}'@'%' IDENTIFIED BY '${WordpressDbPass}'; \
