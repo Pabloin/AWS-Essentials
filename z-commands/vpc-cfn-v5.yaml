@@ -4,12 +4,17 @@ Description:  This template deploys a VPC, with
   It deploys a NAT gateways and default routes for them in the private subnets.
   With Default NACL and One no-ingress Security Group.
   **WARNING** This v1 template creates a NatGateway and it is billed at 1.30 USD by day
-  That Was Version 1 
-  And Version 2
-  Web Security Group And Backend Security Group For RDS
-  That was Version 2
-
+  **WARNING** This v3 template creates Four EC2 Instances and it will be billed
+  This V5 is About 
+  Add Ec2 with WordPress and EC2 MySQL Instance 
+  
 Parameters:
+
+  KeyName:
+    Description: We Need an existing EC2 KeyPair to do SSH access to the instances
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: Must be an existing EC2 KeyPair.
+    
   MyLabName:
     Description: Lab Name
     Type: String
@@ -43,6 +48,27 @@ Parameters:
     Description: Please enter your IP range (CIDR notation) for access to the bastion host by SSH
     Type: String
     Default: 0.0.0.0/0
+
+  LatestAmiId:
+    Description: Gets the latest AMI from Systems Manager Parameter store
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+  # Wordpress Section
+  WordpressDbName:
+    Description: Wordpress DB Name
+    Type: String
+    Default: wordpress
+
+  WordpressDbUser:
+    Description: Wordpress DB Admin User Name
+    Type: String
+    Default: UserDB
+
+  WordpressDbPass:
+    Description: Wordpress DB Admin User Pass
+    Type: String
+    Default: UserPass
 
 Resources:
   VPC:
@@ -219,6 +245,141 @@ Resources:
           ToPort: 22
           SourceSecurityGroupId: !Ref SecurityGroupWebDMZ
 
+  MyGlaciarWebInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: !Ref LatestAmiId
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - Ref: SecurityGroupWebDMZ
+          SubnetId:
+            Ref: SubnetPublic1
+      Tags:
+        - Key: Name
+          Value: My Glaciar WebSite
+      UserData:
+        'Fn::Base64': 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install httpd -y
+            yum install git -y
+            service httpd start
+            chkconfig httpd on
+            cd /var/www/html
+            echo "Hello!" > index.html
+            git clone https://github.com/Pabloin/AWS-Essentials.git
+            unzip AWS-Essentials/c-site-glaciar/lab-02/site-glaciar-lab-02.zip
+            cp -r lab-02/site/* /var/www/html/
+
+  MyWordpressInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: !Ref LatestAmiId
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - Ref: SecurityGroupWebDMZ
+          SubnetId:
+            Ref: SubnetPublic1
+      Tags:
+        - Key: Name
+          Value: My Wordpress Site
+      UserData:
+        'Fn::Base64': 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y mysql
+            yum install -y httpd
+            amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2
+
+            # Install WordPress
+            cd /var/www/html
+            wget https://wordpress.org/latest.tar.gz 
+            tar -xzf latest.tar.gz
+            sudo cp -r wordpress/*  /var/www/html/
+            chmod -R 755 wp-content
+            chown -R apache:apache wp-content
+            service httpd start
+            chkconfig httpd on
+            
+            # Config WordPress
+            cp /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+            sed -i 's/database_name_here/${WordpressDbName}/g'  wp-config.php
+            sed -i 's/username_here/${WordpressDbUser}/g'       wp-config.php
+            sed -i 's/password_here/${WordpressDbPass}/g'       wp-config.php
+            sed -i 's/localhost/${MySqlInstance.PrivateIp}/g'   wp-config.php
+
+
+  # DependsOn: NatGateway
+  MySqlInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: !Ref LatestAmiId
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "false"
+          DeviceIndex: "0"
+          GroupSet:
+            - Ref: SecurityGroupDB
+          SubnetId:
+            Ref: SubnetPrivate1
+      Tags:
+        - Key: Name
+          Value: MySQL WordPress DB
+      UserData:
+        'Fn::Base64': 
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y mariadb-server
+            systemctl enable mariadb
+            systemctl start  mariadb 
+
+            echo "CREATE DATABASE '${WordpressDbName}'; \
+            CREATE USER '${WordpressDbUser}'@'%' IDENTIFIED BY '${WordpressDbPass}'; \
+            GRANT USAGE ON *.* TO '${WordpressDbUser}'@'%' IDENTIFIED BY '${WordpressDbPass}'; \
+            GRANT ALL privileges ON '${WordpressDbName}'.* TO '${WordpressDbUser}'@'%'; \
+            FLUSH PRIVILEGES; \
+            " | /usr/bin/mysql -u root -p
+
+
+  # FROM Lab https://wellarchitectedlabs.com/reliability/200_labs/200_deploy_and_update_cloudformation/5_add_ec2/
+  EC2BastionInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: !Ref LatestAmiId
+      KeyName: !Ref KeyName
+      Tags:
+        - Key: Name
+          Value: My Simple Bastion
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - Ref: SecurityGroupWebDMZ
+          SubnetId:
+            Ref: SubnetPublic1
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            yum -y update
+            sudo yum install -y httpd
+            sudo systemctl start httpd
+            sudo echo '<h1>Web & Bastion from ${AWS::Region}</h1>' > /var/www/html/index.html
+
+
 Outputs:
   VPC:
     Description: VPC Created
@@ -251,3 +412,15 @@ Outputs:
   SecurityGroupNoIngress:
     Description: Security group with no ingress rule
     Value: !Ref SecurityGroupNoIngress
+
+  EC2WebSites:
+    Description: Glaciar Available on
+    Value: !GetAtt MyGlaciarWebInstance.PublicIp
+    Export:
+      Name: !Sub "${AWS::StackName}-Glaciar-PublicIp"
+  
+  WordpressWebSites:
+    Description: WordPress Available on
+    Value: !GetAtt MyWordpressInstance.PublicIp
+    Export:
+      Name: !Sub "${AWS::StackName}-WordPress-PublicIp"

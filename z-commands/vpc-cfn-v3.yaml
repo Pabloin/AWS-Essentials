@@ -4,15 +4,15 @@ Description:  This template deploys a VPC, with
   It deploys a NAT gateways and default routes for them in the private subnets.
   With Default NACL and One no-ingress Security Group.
   **WARNING** This v1 template creates a NatGateway and it is billed at 1.30 USD by day
-  Thats Was Version 1 
+  That was Version 1 
   And Version 2
   Web Security Group And Backend Security Group For RDS
-  Thats Was Version 2
+  That was Version 2
   And Version 3
   **WARNING** This v3 template creates TWO EC2 Instances and it will be billed
   EC2 Instance with User Data (Glaciar) and ssh KeyName
   I am Disabling With Comments the Nat Gateways to Speed Up the template and dismiss risks of unwanted costs
-  Thats Was the Version 3
+  That was the Version 3
 
 Parameters:
 
