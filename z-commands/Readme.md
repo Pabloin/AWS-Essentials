@@ -103,3 +103,26 @@ UUID=80029fd7-fa14-4515-a698-29711f1d8e38  /my-data  xfs  defaults,nofail  0  2
 
 
 cat /etc/fstab
+
+
+
+# SSH Agent
+
+https://medium.com/devops-dudes/setting-up-an-ssh-agent-to-access-the-bastion-in-vpc-532918577949
+
+
+## Se inicia el SSH-Agent & list private keys: 
+ssh-agent -s
+ssh-add -l
+
+## Add the private keys & list
+ssh-add -k lab-vpc-k3-oregon-borrame.pem
+ssh-add -k lab-vpc-k3-virginia-borrame.pem
+ssh-add -l
+
+## To delete
+ssh-add -d  ~/.ssh/cloud-infra-key.pem
+
+## To login
+ssh -A <hostname>
+
