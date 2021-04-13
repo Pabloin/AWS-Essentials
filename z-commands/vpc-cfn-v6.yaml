@@ -5,10 +5,11 @@ Description:  This template deploys a VPC, with
   With Default NACL and One no-ingress Security Group.
   **WARNING** This v1 template creates a NatGateway and it is billed at 1.30 USD by day
   **WARNING** This v3 template creates Four EC2 Instances and it will be billed
-  This V4 is About 
-  Add Ec2 with WordPress and EC2 MySQL Instance (with DB on Public Subnet)
-  And NatGateway commented to reduce cost risks
-
+  This V5 is About 
+  Add Ec2 with WordPress and EC2 MySQL Instance 
+  TDOD V6 is About RDS
+  ERROR--- 2021-04-12 22:59:23 UTC-0300	MyDbSecurityByCIDRIPGroup	CREATE_FAILED	The vpc none does not exist.
+  
 Parameters:
 
   KeyName:
@@ -139,17 +140,17 @@ Resources:
         - Key: Name
           Value: !Sub ${MyLabName} Subnet Private B
 
-  # NatGatewayEIP:
-  #   Type: AWS::EC2::EIP
-  #   DependsOn: InternetGatewayAttachment
-  #   Properties:
-  #     Domain: vpc
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
 
-  # NatGateway:
-  #   Type: AWS::EC2::NatGateway
-  #   Properties:
-  #     AllocationId: !GetAtt NatGatewayEIP.AllocationId
-  #     SubnetId: !Ref SubnetPublic1
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId: !Ref SubnetPublic1
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -188,12 +189,12 @@ Resources:
         - Key: Name
           Value: !Sub ${MyLabName} Private RT
 
-  # DefaultPrivateRoute1:
-  #   Type: AWS::EC2::Route
-  #   Properties:
-  #     RouteTableId: !Ref PrivateRouteTable
-  #     DestinationCidrBlock: 0.0.0.0/0
-  #     NatGatewayId: !Ref NatGateway
+  DefaultPrivateRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
 
   SubnetPrivate1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -279,6 +280,7 @@ Resources:
 
   MyWordpressInstance:
     Type: AWS::EC2::Instance
+    DependsOn: MyDatabaseRDS
     Properties:
       InstanceType: t2.micro
       ImageId: !Ref LatestAmiId
@@ -317,22 +319,46 @@ Resources:
             sed -i 's/database_name_here/${WordpressDbName}/g'  wp-config.php
             sed -i 's/username_here/${WordpressDbUser}/g'       wp-config.php
             sed -i 's/password_here/${WordpressDbPass}/g'       wp-config.php
-            sed -i 's/localhost/${MySqlInstance.PrivateIp}/g'   wp-config.php
+            sed -i 's/localhost/${MyDatabaseRDS.Endpoint.Address}/g'   wp-config.php
 
-  # Ref: SubnetPrivate1
+
+  MyDbSecurityByCIDRIPGroup:
+    Type: AWS::RDS::DBSecurityGroup
+    Properties:
+      GroupDescription: Ingress for CIDRIP
+      DBSecurityGroupIngress:
+        CIDRIP: !Ref MyVPC
+
+
+  # FROM Lab https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-rds.html
+  MyDatabaseRDS:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBSecurityGroups:
+      - Ref: SecurityGroupDB
+      - Ref: MyDbSecurityByCIDRIPGroup
+      AllocatedStorage: '5'
+      DBInstanceClass: db.t2.small
+      Engine: MySQL
+      MasterUsername: !Ref WordpressDbUser
+      MasterUserPassword: !Ref WordpressDbPass
+    DeletionPolicy: Snapshot
+
+
   MySqlInstance:
     Type: AWS::EC2::Instance
+    DependsOn: DefaultPrivateRoute1
     Properties:
       InstanceType: t2.micro
       ImageId: !Ref LatestAmiId
       KeyName: !Ref KeyName
       NetworkInterfaces:
-        - AssociatePublicIpAddress: "true"
+        - AssociatePublicIpAddress: "false"
           DeviceIndex: "0"
           GroupSet:
             - Ref: SecurityGroupDB
           SubnetId:
-            Ref: SubnetPublic1
+            Ref: SubnetPrivate1
       Tags:
         - Key: Name
           Value: MySQL WordPress DB
@@ -354,6 +380,7 @@ Resources:
             " | /usr/bin/mysql -u root -p
 
 
+    
   # FROM Lab https://wellarchitectedlabs.com/reliability/200_labs/200_deploy_and_update_cloudformation/5_add_ec2/
   EC2BastionInstance:
     Type: AWS::EC2::Instance
@@ -379,6 +406,7 @@ Resources:
             sudo yum install -y httpd
             sudo systemctl start httpd
             sudo echo '<h1>Web & Bastion from ${AWS::Region}</h1>' > /var/www/html/index.html
+
 
 
 Outputs:
@@ -425,3 +453,8 @@ Outputs:
     Value: !GetAtt MyWordpressInstance.PublicIp
     Export:
       Name: !Sub "${AWS::StackName}-WordPress-PublicIp"
+
+  MyRDSEndpoint:
+    Description: MyRDS Database
+    Value: !GetAtt MyDatabaseRDS.Endpoint.Address
+      

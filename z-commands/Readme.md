@@ -126,3 +126,11 @@ ssh-add -d  ~/.ssh/cloud-infra-key.pem
 ## To login
 ssh -A <hostname>
 
+
+# To Stress  EC2 Instances
+
+    sudo amazon-linux-extras install epel -y
+    sudo yum install -y stress
+
+    # Stress 10 minutos
+    stress --cpu 2 --timeout 300
