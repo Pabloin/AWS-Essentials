@@ -1,15 +1,10 @@
 Description:  This template deploys a VPC, with 
   A pair of public and private subnets spread across two Availability Zones.
   It deploys an internet gateway, with a default route on the public subnets. 
-  It deploys a NAT gateways and default routes for them in the private subnets.
-  With Default NACL and One no-ingress Security Group.
-  **WARNING** This v1 template creates a NatGateway and it is billed at 1.30 USD by day
-  **WARNING** This v3 template creates Four EC2 Instances and it will be billed
-  This V5 is About 
-  Add Ec2 with WordPress and EC2 MySQL Instance 
-  TDOD V6 is About RDS
-  ERROR--- 2021-04-12 22:59:23 UTC-0300	MyDbSecurityByCIDRIPGroup	CREATE_FAILED	The vpc none does not exist.
-  
+  It deploys an Ec2 with WordPress and EC2 MySQL RDS 
+  It Needs The KeyPairs
+
+
 Parameters:
 
   KeyName:
@@ -140,18 +135,6 @@ Resources:
         - Key: Name
           Value: !Sub ${MyLabName} Subnet Private B
 
-  NatGatewayEIP:
-    Type: AWS::EC2::EIP
-    DependsOn: InternetGatewayAttachment
-    Properties:
-      Domain: vpc
-
-  NatGateway:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGatewayEIP.AllocationId
-      SubnetId: !Ref SubnetPublic1
-
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -180,7 +163,6 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref SubnetPublic2
 
-
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -188,13 +170,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${MyLabName} Private RT
-
-  DefaultPrivateRoute1:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
 
   SubnetPrivate1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -207,6 +182,16 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable
       SubnetId: !Ref SubnetPrivate2
+
+  # - {'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetAPrivate'}
+  # - {'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetBPrivate'}
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: 'DB subnet group'
+      SubnetIds:
+      - !Ref SubnetPrivate1
+      - !Ref SubnetPrivate2
 
   SecurityGroupNoIngress:
     Type: AWS::EC2::SecurityGroup
@@ -247,40 +232,8 @@ Resources:
           ToPort: 22
           SourceSecurityGroupId: !Ref SecurityGroupWebDMZ
 
-  MyGlaciarWebInstance:
-    Type: AWS::EC2::Instance
-    Properties:
-      InstanceType: t2.micro
-      ImageId: !Ref LatestAmiId
-      KeyName: !Ref KeyName
-      NetworkInterfaces:
-        - AssociatePublicIpAddress: "true"
-          DeviceIndex: "0"
-          GroupSet:
-            - Ref: SecurityGroupWebDMZ
-          SubnetId:
-            Ref: SubnetPublic1
-      Tags:
-        - Key: Name
-          Value: My Glaciar WebSite
-      UserData:
-        'Fn::Base64': 
-          !Sub |
-            #!/bin/bash
-            yum update -y
-            yum install httpd -y
-            yum install git -y
-            service httpd start
-            chkconfig httpd on
-            cd /var/www/html
-            echo "Hello!" > index.html
-            git clone https://github.com/Pabloin/AWS-Essentials.git
-            unzip AWS-Essentials/c-site-glaciar/lab-02/site-glaciar-lab-02.zip
-            cp -r lab-02/site/* /var/www/html/
-
   MyWordpressInstance:
     Type: AWS::EC2::Instance
-    DependsOn: MyDatabaseRDS
     Properties:
       InstanceType: t2.micro
       ImageId: !Ref LatestAmiId
@@ -319,95 +272,33 @@ Resources:
             sed -i 's/database_name_here/${WordpressDbName}/g'  wp-config.php
             sed -i 's/username_here/${WordpressDbUser}/g'       wp-config.php
             sed -i 's/password_here/${WordpressDbPass}/g'       wp-config.php
-            sed -i 's/localhost/${MyDatabaseRDS.Endpoint.Address}/g'   wp-config.php
+            sed -i 's/localhost/${MySqlMasterRDS.Endpoint.Address}/g' wp-config.php
 
-
-  MyDbSecurityByCIDRIPGroup:
-    Type: AWS::RDS::DBSecurityGroup
-    Properties:
-      GroupDescription: Ingress for CIDRIP
-      DBSecurityGroupIngress:
-        CIDRIP: !Ref MyVPC
-
-
-  # FROM Lab https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-rds.html
-  MyDatabaseRDS:
+  MySqlMasterRDS:
     Type: AWS::RDS::DBInstance
     Properties:
-      DBSecurityGroups:
-      - Ref: SecurityGroupDB
-      - Ref: MyDbSecurityByCIDRIPGroup
-      AllocatedStorage: '5'
-      DBInstanceClass: db.t2.small
+      DBName: !Ref 'WordpressDbName'
+      AllocatedStorage: 5                        #5 GB
+      DBInstanceClass: "db.t2.small"
       Engine: MySQL
-      MasterUsername: !Ref WordpressDbUser
-      MasterUserPassword: !Ref WordpressDbPass
+      MasterUsername:     !Ref 'WordpressDbUser'
+      MasterUserPassword: !Ref 'WordpressDbPass'
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      MultiAZ: true
+      Tags:
+      - Key: Name
+        Value: MySQL RDS
+      VPCSecurityGroups: [ !GetAtt [SecurityGroupDB, GroupId] ]
     DeletionPolicy: Snapshot
 
-
-  MySqlInstance:
-    Type: AWS::EC2::Instance
-    DependsOn: DefaultPrivateRoute1
+  MySqlReadReplicaRDS:
+    Type: AWS::RDS::DBInstance
     Properties:
-      InstanceType: t2.micro
-      ImageId: !Ref LatestAmiId
-      KeyName: !Ref KeyName
-      NetworkInterfaces:
-        - AssociatePublicIpAddress: "false"
-          DeviceIndex: "0"
-          GroupSet:
-            - Ref: SecurityGroupDB
-          SubnetId:
-            Ref: SubnetPrivate1
+      SourceDBInstanceIdentifier: !Ref 'MySqlMasterRDS'
+      DBInstanceClass: "db.t2.small"
       Tags:
-        - Key: Name
-          Value: MySQL WordPress DB
-      UserData:
-        'Fn::Base64': 
-          !Sub |
-            #!/bin/bash
-            yum update -y
-            yum install -y mariadb-server
-            systemctl enable mariadb
-            systemctl start  mariadb 
-
-            # TODO FIX: No funciona el '%'
-            echo "CREATE DATABASE '${WordpressDbName}'; \
-            CREATE USER '${WordpressDbUser}'@'%' IDENTIFIED BY '${WordpressDbPass}'; \
-            GRANT USAGE ON *.* TO '${WordpressDbUser}'@'%' IDENTIFIED BY '${WordpressDbPass}'; \
-            GRANT ALL privileges ON '${WordpressDbName}'.* TO '${WordpressDbUser}'@'%'; \
-            FLUSH PRIVILEGES; \
-            " | /usr/bin/mysql -u root -p
-
-
-    
-  # FROM Lab https://wellarchitectedlabs.com/reliability/200_labs/200_deploy_and_update_cloudformation/5_add_ec2/
-  EC2BastionInstance:
-    Type: AWS::EC2::Instance
-    Properties:
-      InstanceType: t2.micro
-      ImageId: !Ref LatestAmiId
-      KeyName: !Ref KeyName
-      Tags:
-        - Key: Name
-          Value: My Simple Bastion
-      NetworkInterfaces:
-        - AssociatePublicIpAddress: "true"
-          DeviceIndex: "0"
-          GroupSet:
-            - Ref: SecurityGroupWebDMZ
-          SubnetId:
-            Ref: SubnetPublic1
-      UserData:
-        Fn::Base64:
-          !Sub |
-            #!/bin/bash -xe
-            yum -y update
-            sudo yum install -y httpd
-            sudo systemctl start httpd
-            sudo echo '<h1>Web & Bastion from ${AWS::Region}</h1>' > /var/www/html/index.html
-
-
+      - Key: Name
+        Value: MySQL RDS-RR
 
 Outputs:
   VPC:
@@ -441,12 +332,6 @@ Outputs:
   SecurityGroupNoIngress:
     Description: Security group with no ingress rule
     Value: !Ref SecurityGroupNoIngress
-
-  EC2WebSites:
-    Description: Glaciar Available on
-    Value: !GetAtt MyGlaciarWebInstance.PublicIp
-    Export:
-      Name: !Sub "${AWS::StackName}-Glaciar-PublicIp"
   
   WordpressWebSites:
     Description: WordPress Available on
@@ -454,7 +339,6 @@ Outputs:
     Export:
       Name: !Sub "${AWS::StackName}-WordPress-PublicIp"
 
-  MyRDSEndpoint:
-    Description: MyRDS Database
-    Value: !GetAtt MyDatabaseRDS.Endpoint.Address
-      
+  RdsDBEndpoint:
+    Description: RDS DB Enpoint
+    Value: !GetAtt MySqlMasterRDS.Endpoint.Address
