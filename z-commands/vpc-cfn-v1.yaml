@@ -91,7 +91,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${MyLabName} Private Subnet A
+          Value: !Sub ${MyLabName} Subnet Private A
 
   SubnetPrivate2:
     Type: AWS::EC2::Subnet
@@ -102,7 +102,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${MyLabName} Private Subnet B
+          Value: !Sub ${MyLabName} Subnet Private B
 
   NatGatewayEIP:
     Type: AWS::EC2::EIP
