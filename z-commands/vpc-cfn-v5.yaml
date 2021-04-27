@@ -125,7 +125,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${MyLabName} Private Subnet A
+          Value: !Sub ${MyLabName} Subnet Private A
 
   SubnetPrivate2:
     Type: AWS::EC2::Subnet
@@ -136,7 +136,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${MyLabName} Private Subnet B
+          Value: !Sub ${MyLabName} Subnet Private B
 
   NatGatewayEIP:
     Type: AWS::EC2::EIP
@@ -319,9 +319,9 @@ Resources:
             sed -i 's/localhost/${MySqlInstance.PrivateIp}/g'   wp-config.php
 
 
-  # DependsOn: NatGateway
   MySqlInstance:
     Type: AWS::EC2::Instance
+    DependsOn: DefaultPrivateRoute1
     Properties:
       InstanceType: t2.micro
       ImageId: !Ref LatestAmiId
