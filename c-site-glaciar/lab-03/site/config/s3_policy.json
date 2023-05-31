@@ -6,7 +6,7 @@
             "Sid": "MyPublicPolicy",
             "Effect": "Allow",
             "Principal": "*",
-            "Resource": "arn:aws:s3:::website-ninja/*",
+            "Resource": "arn:aws:s3:::mi-sitio-glaciar/*",
             "Action": [
                 "s3:GetObject"
             ]
@@ -15,7 +15,7 @@
             "Sid": "MyPrivatePolicy",
             "Effect": "Deny",
             "Principal": "*",
-            "Resource": "arn:aws:s3:::website-ninja/config/*",
+            "Resource": "arn:aws:s3:::mi-sitio-glaciar/config/*",
             "Action": [
                 "s3:GetObject"
             ]
