@@ -1,0 +1,24 @@
+{
+    "Id": "PolicyMix",
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "MyPublicPolicy",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Resource": "arn:aws:s3:::www.game-day-site.org.ar/*",
+            "Action": [
+                "s3:GetObject"
+            ]
+        },
+        {
+            "Sid": "MyPrivatePolicy",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Resource": "arn:aws:s3:::www.game-day-site.org.ar/config/*",
+            "Action": [
+                "s3:GetObject"
+            ]
+        }
+    ]
+}
