@@ -6,21 +6,16 @@ yum install php -y
 service httpd start
 chkconfig httpd on
 
-# Hello World web Site
+#------------------------
+echo "Hello Static Site!"  > /var/www/html/index.html
 
-cd /var/www/html
-echo "Hello!" > index.html
+#------------------------
+echo "<?php echo '<p>Hello PHP World</p>'; ?>" > /var/www/html/index.php
 
-
+#------------------------
 # Static web Site
 
 git clone https://github.com/Pabloin/AWS-Essentials.git
 
 cp -r AWS-Essentials/GameDay/game-day-site/* /var/www/html/
-
-
-# Dynamic web Site
-
-echo "<?php echo '<p>Hello PHP World</p>'; ?>" > /var/www/html/index.php
-
 
