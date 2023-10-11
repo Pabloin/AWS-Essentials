@@ -21,8 +21,6 @@ cp -r AWS-Essentials/GameDay/game-day-site/* /var/www/html/
 
 # Dynamic web Site
 
-
-
-echo "<?php echo '<p>Hello World</p>'; ?>" > /var/www/html/index.php
+echo "<?php echo '<p>Hello PHP World</p>'; ?>" > /var/www/html/index.php
 
 
