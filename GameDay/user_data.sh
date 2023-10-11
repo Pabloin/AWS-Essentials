@@ -9,5 +9,6 @@ cd /var/www/html
 echo "Hello!" > index.html
 
 git clone https://github.com/Pabloin/AWS-Essentials.git
+
 cp -r AWS-Essentials/GameDay/game-day-site/* /var/www/html/
 
