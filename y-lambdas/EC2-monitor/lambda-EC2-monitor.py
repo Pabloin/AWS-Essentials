@@ -6,6 +6,7 @@
 #   - La lambda
 #   - Un Event Bridge
 #   - Una Policy
+#   - Subir tiemout de 3 segundos (Ej 20)
 #
 import json
 import boto3
