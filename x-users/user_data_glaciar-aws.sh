@@ -2,6 +2,8 @@
 yum update -y
 yum install httpd -y
 yum install git -y
+yum install tmux -y
+
 service httpd start
 chkconfig httpd on
 
