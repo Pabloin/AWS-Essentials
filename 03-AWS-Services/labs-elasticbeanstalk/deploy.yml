@@ -1,0 +1,36 @@
+name: Deploy to Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+
+    - name: Build with Maven
+      run: mvn clean package
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Deploy to Elastic Beanstalk
+      run: |
+        aws elasticbeanstalk create-application-version --application-name "GlaciarApp" --version-label "v1" --source-bundle S3Bucket="my-bucket",S3Key="my-app.jar"
+        aws elasticbeanstalk update-environment --application-name "GlaciarApp" --environment-name "my-env" --version-label "v1"
+
+
