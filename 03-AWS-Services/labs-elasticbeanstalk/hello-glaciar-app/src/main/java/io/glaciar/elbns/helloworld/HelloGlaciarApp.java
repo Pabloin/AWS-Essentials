@@ -22,14 +22,14 @@ public class HelloGlaciarApp {
     @Bean
     public CommandLineRunner run(ApplicationContext ctx) {
         return args -> {
-            System.out.println("Standalone functionality running alongside REST API...");
+            System.out.println("GlaciarApp - Standalone running alongside REST API...");
         };
     }
 
     // Scheduled task to simulate a background operation
     @Scheduled(fixedRate = 5000)  // Runs every 5 seconds
     public void scheduledTask() {
-        System.out.println("Background task running every 5 seconds.");
+        System.out.println("GlaciarApp - Background task running every 5 seconds.");
     }
 
     // REST Controller for handling HTTP requests
@@ -38,7 +38,7 @@ public class HelloGlaciarApp {
 
         @GetMapping("/hello")
         public String sayHello() {
-            return "Hello, this is a REST API response from hello-glaciar-app!";
+            return "GlaciarApp, this is a REST API from hello-glaciar-app!";
         }
     }
 }
