@@ -16,6 +16,11 @@ jobs:
   terraform:
     name: Terraform Plan and Apply
     runs-on: ubuntu-latest
+
+    environment:
+      name: ACG-Sandbox  # Use the ACG-Sandbox environment for deployment
+
+
     defaults:
       run:
         working-directory: 03-AWS-Services/labs-terraform/Tf-lab-02
@@ -44,3 +49,8 @@ jobs:
     - name: Terraform Apply (only on main branch)
       if: github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve tfplan
+      environment:
+        name: ACG-Sandbox  # Ensure we are applying within the ACG-Sandbox environment
+
+
+
