@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "glaciar" {
-  bucket = "io-glaciar-tf-acg-${var.env_name}"
+  bucket = "io-glaciar-tf-acg2-${var.env_name}"
   force_destroy  = true
 }
 
