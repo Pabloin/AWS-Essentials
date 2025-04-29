@@ -4,5 +4,4 @@
    - With Java & Github actions       
 
 
-   org.
-   GlaciarApp
+   io.GlaciarApp

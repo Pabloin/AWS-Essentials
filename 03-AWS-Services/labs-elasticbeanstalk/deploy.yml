@@ -1,4 +1,4 @@
-name: Deploy to Elastic Beanstalk
+name: GlaciarApp Deploy on Elastic Beanstalk
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
 
     - name: Deploy to Elastic Beanstalk
       run: |
-        aws elasticbeanstalk create-application-version --application-name "GlaciarApp" --version-label "v1" --source-bundle S3Bucket="my-bucket",S3Key="my-app.jar"
+        aws elasticbeanstalk create-application-version --application-name "GlaciarApp" --version-label "v1" --source-bundle S3Bucket="GlaciarApp-bucket",S3Key="glaciar-app.jar"
         aws elasticbeanstalk update-environment --application-name "GlaciarApp" --environment-name "my-env" --version-label "v1"
 
 
