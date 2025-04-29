@@ -3,12 +3,12 @@ name: Glaciar App Terraform Deploy
 on:
   push:
     paths:
-      - '03-AWS-Services/labs-terraform/TF-lab-02/**'  # Only run if Terraform files changed
+      - '03-AWS-Services/labs-terraform/Tf-lab-02/**'  # Only run if Terraform files changed
     branches:
       - main
   pull_request:
     paths:
-      - '03-AWS-Services/labs-terraform/TF-lab-02/**'
+      - '03-AWS-Services/labs-terraform/Tf-lab-02/**'
 
 jobs:
   terraform:
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 03-AWS-Services/labs-terraform/TF-lab-02
+        working-directory: 03-AWS-Services/labs-terraform/Tf-lab-02
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
