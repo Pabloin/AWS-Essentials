@@ -1,16 +1,9 @@
-terraform {
-  required_providers {
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.0"
-    }
-  }
+provider "aws" {
+  region = "us-east-1"
 }
 
-provider "local" {}
-
-resource "local_file" "hello_world" {
-  filename = "${path.module}/output/hello.txt"
-  content  = "Hello, Glaciar App!"
+module "s3_bucket" {
+  source  = "./modules/s3_bucket"
+  env_name = terraform.workspace
 }
 
