@@ -1,7 +1,5 @@
 name: Glaciar App Terraform Deploy
 
-
-
 on:
   push:
     paths:
