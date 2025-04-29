@@ -10,6 +10,8 @@ on:
     paths:
       - '03-AWS-Services/labs-terraform/Tf-lab-02/**'
 
+  workflow_dispatch:  # 👈 Enables "Run workflow" button
+
 jobs:
   terraform:
     name: Terraform Plan and Apply
