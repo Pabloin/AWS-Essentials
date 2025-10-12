@@ -76,6 +76,7 @@ resource "aws_instance" "bastion" {
   key_name               = aws_key_pair.bastion.key_name
   subnet_id              = var.subnet_id
   vpc_security_group_ids = [aws_security_group.bastion.id]
+  iam_instance_profile   = aws_iam_instance_profile.bastion_ssm.name
 
   root_block_device {
     volume_type           = "gp3"

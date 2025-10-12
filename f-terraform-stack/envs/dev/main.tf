@@ -17,9 +17,6 @@ module "moreno_stack" {
   allowed_ssh_cidr   = var.allowed_ssh_cidr
   ssh_public_key     = var.ssh_public_key
   
-  # Tags
-  default_tags       = var.default_tags
-  
   # AMI
   ami_id             = var.ami_id
 }

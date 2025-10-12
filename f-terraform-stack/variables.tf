@@ -42,14 +42,20 @@ variable "ssh_public_key" {
   type        = string
 }
 
-variable "default_tags" {
-  description = "Additional tags to apply to all resources"
-  type        = map(string)
-  default     = {}
-}
-
 variable "ami_id" {
   description = "AMI ID to use for bastion (optional - will auto-detect Ubuntu 24.04 if not specified)"
   type        = string
   default     = ""
+}
+
+variable "run_custom_setup" {
+  description = "Whether to run custom-bastion-setup.sh after deployment"
+  type        = bool
+  default     = false
+}
+
+variable "default_tags" {
+  description = "Default tags to apply to all resources"
+  type        = map(string)
+  default     = {}
 }

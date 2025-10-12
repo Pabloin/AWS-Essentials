@@ -16,12 +16,6 @@ variable "environment" {
   default     = "dev"
 }
 
-variable "default_tags" {
-  type        = map(string)
-  description = "Default tags applied by provider"
-  default     = {}
-}
-
 variable "allowed_ssh_cidr" {
   description = "CIDR blocks allowed to SSH into bastion"
   type        = list(string)
@@ -56,6 +50,14 @@ variable "ami_id" {
   default     = ""
 }
 
+variable "run_custom_setup" {
+  description = "Whether to run custom-bastion-setup.sh after deployment"
+  type        = bool
+  default     = false
+}
 
-
-
+variable "default_tags" {
+  description = "Default tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}
