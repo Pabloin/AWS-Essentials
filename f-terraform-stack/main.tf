@@ -37,5 +37,4 @@ module "bastion" {
   allowed_ssh_cidr  = var.allowed_ssh_cidr
   ssh_public_key    = var.ssh_public_key
   ami_id            = var.ami_id
-  user_data_script  = file("${path.module}/scripts/user_data.sh")
 }
