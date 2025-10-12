@@ -1,0 +1,19 @@
+# Example Terraform variables file
+# Copy this file to terraform.tfvars and update with your values
+
+aws_region         = "us-east-1"
+project_name       = "bastion-stack"
+environment        = "dev"
+vpc_cidr           = "10.0.0.0/16"
+public_subnet_cidr = "10.0.1.0/24"
+instance_type      = "t3.micro"
+
+# IMPORTANT: Replace with your actual SSH public key
+# Generate with: ssh-keygen -t ed25519 -f ~/.ssh/bastion-key -C "bastion-key"
+# View with: cat ~/.ssh/bastion-key.pub (Linux/Mac)
+# Or: Get-Content $env:USERPROFILE\.ssh\bastion-key.pub (Windows PowerShell)
+ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... your-key-here"
+
+# SECURITY: Restrict SSH access to your IP only
+# Get your IP by visiting: https://ipinfo.io/ip
+allowed_ssh_cidr = ["YOUR.IP.ADDRESS.HERE/32"]
