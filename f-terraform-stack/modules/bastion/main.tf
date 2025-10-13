@@ -78,6 +78,19 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids = [aws_security_group.bastion.id]
   iam_instance_profile   = aws_iam_instance_profile.bastion_ssm.name
 
+  # Spot instance configuration (optional - up to 90% cost savings)
+  # Uses "stop" behavior to preserve instance state when interrupted
+  dynamic "instance_market_options" {
+    for_each = var.use_spot_instance ? [1] : []
+    content {
+      market_type = "spot"
+      spot_options {
+        instance_interruption_behavior = "stop"
+        spot_instance_type             = "persistent"
+      }
+    }
+  }
+
   root_block_device {
     volume_type           = "gp3"
     volume_size           = var.root_volume_size

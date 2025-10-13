@@ -46,3 +46,9 @@ variable "ami_id" {
   type        = string
   default     = ""
 }
+
+variable "use_spot_instance" {
+  description = "Whether to use Spot instance instead of On-Demand (up to 90% cost savings, persistent with stop behavior)"
+  type        = bool
+  default     = false
+}

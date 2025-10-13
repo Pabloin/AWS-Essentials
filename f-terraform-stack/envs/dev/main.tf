@@ -19,4 +19,13 @@ module "moreno_stack" {
   
   # AMI
   ami_id             = var.ami_id
+  
+  # Spot instance
+  use_spot_instance  = var.use_spot_instance
+  
+  # Tags
+  default_tags           = var.default_tags
+  
+  # Lambda schedule
+  ec2_monitor_schedule   = var.ec2_monitor_schedule
 }

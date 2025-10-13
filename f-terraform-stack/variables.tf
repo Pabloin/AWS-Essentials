@@ -48,6 +48,12 @@ variable "ami_id" {
   default     = ""
 }
 
+variable "use_spot_instance" {
+  description = "Whether to use Spot instance for bastion (up to 90% cost savings, persistent with stop behavior)"
+  type        = bool
+  default     = true
+}
+
 variable "run_custom_setup" {
   description = "Whether to run custom-bastion-setup.sh after deployment"
   type        = bool
@@ -58,4 +64,10 @@ variable "default_tags" {
   description = "Default tags to apply to all resources"
   type        = map(string)
   default     = {}
+}
+
+variable "ec2_monitor_schedule" {
+  description = "EventBridge schedule expression for EC2 monitor (e.g., 'cron(0 22 * * ? *)' for 10 PM UTC daily)"
+  type        = string
+  default     = "cron(0 22 * * ? *)"  # 10 PM UTC daily (6 PM EST)
 }
